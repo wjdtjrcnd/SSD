@@ -78,7 +78,7 @@ class MultiBoxLoss(nn.Module): # To use in another file, nn.Mudule
             labels = targets[idx][:, -1].data # get labels of annot  => obtain label indx ex. boat: 3
             defaults = priors.data
             match(self.threshold, truths, defaults, self.variance, labels,
-                  loc_t, conf_t, idx)
+                  loc_t, conf_t, idx) # modify loc_t, conf_t by match function
         if self.use_gpu:
             loc_t = loc_t.cuda()
             conf_t = conf_t.cuda()
@@ -89,6 +89,13 @@ class MultiBoxLoss(nn.Module): # To use in another file, nn.Mudule
         #positive prior box
         pos = conf_t > 0 # 32x8732 gives boolean if each prior boxes find the object
         num_pos = pos.sum(dim=1, keepdim=True) # 32x1 gives number of prior boxes find the object
+
+        # Exclude priors where loc_t is [0, 0, 0, 0] - to mask background class when calculatiing localization loss
+        exclude_mask = ~(loc_t == 0).all(dim=1)  # Mask for rows where all elements are 0
+
+        # Apply mask to pos and loc_t
+        pos = pos[exclude_mask]
+        loc_t = loc_t[exclude_mask]
 
         # Localization Loss (Smooth L1)
         # Shape: [batch,num_priors,4]

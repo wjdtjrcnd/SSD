@@ -106,7 +106,7 @@ class VOC_CAR_Detection(data.Dataset):
         for (_, name) in image_sets:
             rootpath = self.root
             for line in open(osp.join(rootpath, 'ImageSets', 'Main', name + '.txt')):
-                self.ids.append((rootpath, line.strip()))
+                self.ids.append((rootpath, line.strip())) # get ids for trainval images
 
     def __getitem__(self, index):
         im, gt, h, w = self.pull_item(index) # Pull items as im, gt, h, w 
@@ -121,7 +121,7 @@ class VOC_CAR_Detection(data.Dataset):
 
         target = ET.parse(self._annopath % img_id).getroot()
         img = cv2.imread(self._imgpath % img_id)
-        height, width, channels = img.shape
+        height, width, channels = img.shape # for each index, obtain height, width corresponding image
 
         if self.target_transform is not None:
             target = self.target_transform(target, width, height)
